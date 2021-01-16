@@ -1,0 +1,219 @@
+script.
+    //Adding event handlers
+    document.getElementById("searchInput").addEventListener("keyup", findFriend);
+
+    //Poll the page every 3 seconds
+    setInterval(function(){ 
+        //Polling every 3 seconds
+        var xhttp = new XMLHttpRequest();
+        
+        xhttp.onreadystatechange = function() {
+            
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("fRequests").innerHTML = "";
+                document.getElementById("tRequests").innerHTML = "";
+                //User the response to build a user
+                console.log(this.response);
+                let badge, field;
+                let count = [0,0]
+                this.response.forEach((req) =>{
+                    if(req.type == 'friend'){
+                        badge = document.getElementById("numFriends");
+                        field = document.getElementById("fRequests");
+
+                        //Update the html content, even if it is not showing currently
+                        field.innerHTML += "<div class=' container row justify-content-between mt-2'>"+
+                        "<p>" + req.sender + " wants to be your friend!</p>" +
+                        "<button value="+req._id+" class='btn btn-primary' onclick='respondRequest(event,true)'> Accept </button>"+
+                        "<button value="+req._id+" class='btn btn-danger' onclick='respondRequest(event,false)'> Deny </button>"+
+                        "</div>";
+                        count[0]++;
+                        badge.innerHTML = count[0];
+                    }else if(req.type == "trade"){
+                        //sender
+                        //recipient
+                        //type
+                        //offer
+                        //return
+                        console.log(req.offer);
+                        badge = document.getElementById("numTrades");
+                        field = document.getElementById("tRequests");
+
+                        field.innerHTML += "<div><p> " + req.sender + " wants to trade!</p>" +
+                        "<div>" ;
+                        for(let i =0; i < req.offer.length; i++){
+                            field.innerHTML += "<p>" + req.offer[i];
+                        }
+                        field.innerHTML += "for </p>"
+                        for(let i =0; i < req.return.length; i++){
+                            field.innerHTML += "<p>" + req.return[i];
+                        }
+                        field.innerHTML += "</p></div></div>";
+                        count[0]++;
+                        badge.innerHTML = count[0];
+                    }
+                    
+
+                    
+                });
+                
+            }
+            else if(this.status == 204){
+                
+            }
+        };
+        xhttp.open("GET", "/requests", true);
+        xhttp.responseType = "json";
+        xhttp.send(null);
+     }, 3000);
+
+    function clearCards(event){
+        let allCards = document.getElementsByClassName("customCheckbox");
+        for(let i = 0; i < allCards.length; i++){
+            if(allCards[i].checked){
+                if(allCards[i].name == "recieve"){
+                    allCards[i].checked = false;
+                    //The label is what gets updated visually so we clear that.
+                    parent = allCards[i].parentNode;
+                    parent.classList.remove("rounded");
+                    parent.classList.remove("bg-primary");
+                    parent.classList.remove("text-white");
+                }
+            }
+        }
+    }
+
+    function sendTrade(){
+        let tradeDetails = {offer: [],return:[],recipient:"",type:"trade"};
+
+        let allCards = document.getElementsByClassName("customCheckbox");
+        for(let i = 0; i < allCards.length; i++){
+            if(allCards[i].checked){
+                if(allCards[i].name == "offer"){
+                    tradeDetails.offer.push(allCards[i].value);
+                }else if(allCards[i].name == "recieve"){
+                    tradeDetails.return.push(allCards[i].value);
+                }
+            }
+        }
+
+        let friends = document.getElementsByClassName("requestUser");
+        for(let i = 0; i < friends.length; i++){
+            console.log(i);
+            if(friends[i].classList.contains("active")){
+                tradeDetails.recipient = friends[i].name;
+                console.log(friends[i].name);
+            }
+        }
+
+        if((tradeDetails.offer.length != 0 || tradeDetails.return.length != 0) && tradeDetails.recipient != ""){
+            console.log(tradeDetails);
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    alert("Your trade request has been sent");
+                }
+            };
+            xhttp.open("POST", "/requests", true);
+            xhttp.setRequestHeader("Content-type", "application/json");
+            xhttp.send(JSON.stringify(tradeDetails));
+        }
+        else{
+            alert("Please select a user, and at least one card to trade");
+        }
+    }
+
+    function toggleSelected(event){
+        let item = event.target;
+        let parent = item.parentNode;
+        if(item.checked == false){
+            parent.classList.remove("rounded");
+            parent.classList.remove("bg-primary");
+            parent.classList.remove("text-white");
+        }else{
+            parent.classList.add("rounded");
+            parent.classList.add("bg-primary");
+            parent.classList.add("text-white");
+        }
+    }
+    //Functions to query for users in the database that match a certain criteria
+    function findFriend(){
+        let query = "?query="+document.getElementById("searchInput").value;
+
+        var xhttp = new XMLHttpRequest();
+        
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                //User the response to build a user
+                document.getElementById("friendResults").innerHTML = "";
+                this.response.forEach((user)=>{
+                    document.getElementById("friendResults").innerHTML += 
+                "<div class=' container row justify-content-between mt-2'>"+
+                "<h5>" + user.username + "</h5>" +
+                "<button class='btn btn-primary' onclick='sendFriendRequest(event)' value="+user.username+"> Add </button>"+
+                "</div>";
+                })
+                
+            }
+            else if(this.status == 204){
+                document.getElementById("friendResults").innerHTML = "There are no users by this name";
+            }
+        };
+        xhttp.open("GET", "/users/add"+query, true);
+        xhttp.responseType = "json";
+        xhttp.send(null);
+    }
+
+    function sendFriendRequest(event){
+        //Make request with the user ID to the server
+        //Add a new request to the DB
+        //1) Page polls, asking for updates on friends
+        //2) Page polls asking for new Requests
+        let recipientId = event.target.value;
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                //User the response to build a user
+                console.log("Request has been processed");
+            }
+            else{
+                //alert("There was an error submitting to the server")
+                console.log("err");
+            }
+        };
+        xhttp.open("POST", "/requests", true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.send(JSON.stringify({recipient: recipientId, type: "friend"}));
+    }
+
+    function respondRequest(event, response){
+        document.getElementById("numFriends").innerHTML = "";
+        document.getElementById("fRequests").innerHTML = "";
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                //User the response to build a user
+                if(response){
+                    alert("A new friend has been added!");
+                }else{
+                    console.log("Denied Successfuly")
+                }
+            }
+        };
+        let reqId = event.target.value;
+        xhttp.open("POST", "/requests/" + reqId, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.send(JSON.stringify({id: reqId, accept: response}));
+    }
+
+    function logout(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                //Redirecting
+                window.location.href="http://localhost:3000";
+            }
+        };
+        xhttp.open("GET", "/users/logout", true);
+        xhttp.send();
+    }

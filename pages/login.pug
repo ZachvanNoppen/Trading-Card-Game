@@ -1,0 +1,21 @@
+doctype html
+html
+    head
+        title Login
+        link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T', crossorigin='anonymous')
+    body
+        .row.justify-content-center.m-5
+            .col-md-6.col-md-offset-3
+                h1 Login
+                p#response #{error}
+                form(action="users" method="POST")
+                    div.form-group
+                        label(for='username').pr-2 Username:
+                        input.form-group(type='text' id='username' name="username" placeholder='Username' required)
+                    div.form-group
+                        label(for='pword').pr-2 Password:
+                        input.form-group(type='password' id='pword' name="password" placeholder='password' required)
+                    button.btn.btn-secondary#register(value='register' name="register") Register
+                    button.btn.btn-primary.mx-5#login(value='login' name='login') Log in
+script
+    include ../scripts/login.js

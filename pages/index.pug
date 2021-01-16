@@ -1,0 +1,93 @@
+doctype html
+html
+    head
+        title Login
+        link(href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", rel="stylesheet", integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh", crossorigin="anonymous")
+    body
+        div.container.my-5
+            h1 Profile
+            p Welcome #{name}...
+            button.btn.btn-primary(type="button" onclick="logout()") Logout
+            div.my-3
+                h3 Friends
+                ul.nav.nav-tabs
+                    li.nav-item
+                        a.nav-link.active(href='#friends' data-toggle="tab") Added
+                    li.nav-item
+                        div.nav-link(href='#fRequests' data-toggle="tab")
+                            a(href="#" style="text-decoration: none")  Requests
+                            span#numFriends.badge.badge-primary.mx-2
+                    li.nav-item
+                        a.nav-link(href='#addFriends' data-toggle="tab") Add Friends
+                .tab-content
+                    div#friends.tab-pane.fade.show.active.container
+                        each friend in friends
+                            a( href="/users/") #{friend.name}
+                            br
+                    div#fRequests.tab-pane.fade
+                    div#addFriends.tab-pane.fade
+                        div.input-group.mb-3.my-5
+                            input.form-control#searchInput(type="text" name="searchInput" placeholder="Search for your friends" autocomplete="off")
+                            div.input-group-append
+                                button#addFriendBtn.btn.btn-primary(type="button" onclick="findFriend()") Search
+                        div#friendResults.my-2
+            div
+                h3 Cards
+                div.row.justify-content-start.w-100.border.rounded
+                    div.border.rounded-left.p-2
+                        div#v-pills-tab.nav.flex-column.nav-pills(role="tablist", aria-orientation="vertical")
+                            each card in cards
+                                a.nav-link(id=card.name + "pill" data-toggle='pill', href="#"+card.name, role='tab', aria-controls=card.name aria-selected="false") #{card.name} 
+                    div#v-pills-tabContent.tab-content.container.col.py-5
+                        each card in cards
+                            div.tab-pane.fade(id=card.name role='tabpanel', aria-labelledby=card.name) 
+                                .row.justify-content-center
+                                    h2 #{card.name}
+                                .row.justify-content-center
+                                    h6 by #{card.artist}
+                                .row.justify-content-center
+                                    .col.text-center
+                                        p Health: #{card.health}
+                                        p Attack: #{card.attack}
+                                        p Race: #{card.race}
+                                        p Class: #{card.cardClass}
+                                        p Rarity: #{card.rarity}
+            div.py-3
+                h3 Trades
+                ul.nav.nav-tabs
+                    li.nav-item
+                        a.nav-link.active(href='#newTrade' data-toggle="tab") Create
+                    li.nav-item
+                            a.nav-link(href="#tRequests" style="text-decoration: none" data-toggle="tab") Pending
+                                span#numTrades.badge.badge-primary.mx-2
+                .tab-content
+                    div#newTrade.tab-pane.fade.active.show.container.p-3
+                        div.row.justify-content-between.w-100.border.rounded
+                            div.border.rounded-left.p-2
+                                h4 Give:
+                                each card in cards
+                                    label.btn.btn-link.text-decoration-none #{card.name}
+                                        input.customCheckbox.d-none(type= "checkbox" value=card.name href="##" role='tab' name="offer" onclick="toggleSelected(event)")
+                                    br
+                            div#v-pills-tabContent.tab-content.container.col.py-2
+                                h4 Recieve:
+                                each friend in friends
+                                    div.tab-pane.fade(id=friend.name role='tabpanel', aria-labelledby=friend.name)
+                                        each card in friend.cards
+                                            label.btn.btn-link.text-decoration-none #{card.name}
+                                                input.customCheckbox.d-none(type= "checkbox" value=card.name href="##" role='tab' name="recieve" onclick="toggleSelected(event)")
+                                            br
+                            div.border.rounded-left.p-2.justify-content-between.d-flex.flex-column
+                                div#v-pills-tab-request.nav.flex-column.nav-pills(role="tablist", aria-orientation="vertical")
+                                    h4 Select Friend
+                                    each friend in friends
+                                        a.nav-link.requestUser(name=friend.name data-toggle='pill', href="#"+friend.name, role='tab', aria-controls=friend.name aria-selected="false" onclick="clearCards()") #{friend.name}  
+                                button#tradeReqBtn.btn.btn-warning.my-1(type="button" onclick="sendTrade()") Request
+                    div#tRequests.tab-pane.fade
+                        p Confirm/Deny Request
+        script(src='https://code.jquery.com/jquery-3.2.1.slim.min.js', integrity='sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN', crossorigin='anonymous')
+        script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js', integrity='sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q', crossorigin='anonymous')
+        script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js', integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl', crossorigin='anonymous')
+        script
+            include ../scripts/index.js
+        
